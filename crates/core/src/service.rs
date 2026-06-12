@@ -21,13 +21,13 @@ use crate::{Depot, async_trait};
 #[non_exhaustive]
 pub struct Service {
     /// The router of this service.
-    pub router: Arc<Router>,
+    pub(crate) router: Arc<Router>,
     /// The catcher of this service.
-    pub catcher: Option<Arc<Catcher>>,
+    pub(crate) catcher: Option<Arc<Catcher>>,
     /// These hoops will always be called when request received.
-    pub hoops: Vec<Arc<dyn Handler>>,
+    pub(crate) hoops: Vec<Arc<dyn Handler>>,
     /// The allowed media types of this service.
-    pub allowed_media_types: Arc<Vec<Mime>>,
+    pub(crate) allowed_media_types: Arc<Vec<Mime>>,
 }
 
 impl Debug for Service {

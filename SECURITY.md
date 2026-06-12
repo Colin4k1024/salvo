@@ -34,3 +34,15 @@ If the report is accepted, we will work on a fix privately before public disclos
 - We will coordinate public disclosure after a fix or mitigation is available.
 - When possible, the fix will be released in a stable version and documented in release notes.
 - Reporters will be credited after disclosure if they want to be named.
+
+## Security Best Practices for Salvo Users
+
+- Enable CSRF protection for state-changing endpoints.
+- Use JWT with strong secrets and proper token validation.
+- Configure CORS restrictively — avoid `AllowOrigin: *` with credentials.
+- Set `GLOBAL_SECURE_MAX_SIZE` or use `SecureMaxSize` middleware to limit
+  request body sizes.
+- Use HTTPS in production via the `rustls`, `native-tls`, or `openssl`
+  features.
+- Keep dependencies up to date; we enable Dependabot for automated updates.
+

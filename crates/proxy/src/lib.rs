@@ -78,6 +78,13 @@ cfg_feature! {
 type HyperRequest = hyper::Request<ReqBody>;
 type HyperResponse = hyper::Response<ResBody>;
 
+/// The `X-Forwarded-For` header name used for passing the original client IP to upstream servers.
+///
+/// # Security Note
+///
+/// This header can be spoofed by the client. The upstream server **must** be configured to
+/// trust only `X-Forwarded-For` values from this proxy, not from the original request.
+/// Consider also using `Forwarded` (RFC 7239) for structured forwarding information.
 const X_FORWARDED_FOR_HEADER_NAME: &str = "x-forwarded-for";
 const HOP_BY_HOP_HEADERS: &[&str] = &[
     "connection",

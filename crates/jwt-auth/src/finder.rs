@@ -199,6 +199,12 @@ impl JwtTokenFinder for FormFinder {
 ///
 /// This finder looks for a token in the request's query string using a specified parameter name.
 ///
+/// # Security Warning
+///
+/// Passing JWT tokens via query parameters can expose them in server access logs,
+/// browser history, and referer headers. Prefer [`HeaderFinder`] (Authorization header)
+/// or [`CookieFinder`] (HttpOnly + Secure cookie) in production environments.
+///
 /// # Example
 ///
 /// ```

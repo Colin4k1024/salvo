@@ -164,3 +164,115 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+
+name: Release
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  version-info:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get releasing version
+        working-directory: .
+        run: echo NEXT_VERSION=$(sed -nE 's/^\s*version = "(.*?)"/\1/p' Cargo.toml) >> $GITHUB_ENV
+
+      - name: Check published version
+        run: echo PREV_VERSION=$(cargo search salvo --limit 1 | sed -nE 's/^[^"]*"//; s/".*//1p' -) >> $GITHUB_ENV
+
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        package:
+          - crate: salvo-serde-util
+            path: crates/serde-util
+          - crate: salvo_macros
+            path: crates/macros
+          - crate: salvo_core
+            path: crates/core
+          - crate: salvo_extra
+            path: crates/extra
+          - crate: salvo-proxy
+            path: crates/proxy
+          - crate: salvo-compression
+            path: crates/compression
+          - crate: salvo-jwt-auth
+            path: crates/jwt-auth
+          - crate: salvo-session
+            path: crates/session
+          - crate: salvo-flash
+            path: crates/flash
+          - crate: salvo-cors
+            path: crates/cors
+          - crate: salvo-csrf
+            path: crates/csrf
+          - crate: salvo-cache
+            path: crates/cache
+          - crate: salvo-rate-limiter
+            path: crates/rate-limiter
+          - crate: salvo-serve-static
+            path: crates/serve-static
+          - crate: salvo-otel
+            path: crates/otel
+          - crate: salvo-oapi-macros
+            path: crates/oapi-macros
+          - crate: salvo-oapi
+            path: crates/oapi
+          - crate: salvo-craft-macros
+            path: crates/craft-macros
+          - crate: salvo-craft
+            path: crates/craft
+          - crate: salvo
+            path: crates/salvo
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get releasing version
+        working-directory: ${{ matrix.package.path }}
+        run: echo NEXT_VERSION=$(sed -nE 's/^\s*version = "(.*?)"/\1/p' Cargo.toml) >> $GITHUB_ENV
+
+      - name: Check published version
+        run: echo PREV_VERSION=$(cargo search ${{ matrix.package.crate }} --limit 1 | sed -nE 's/^[^"]*"//; s/".*//1p' -) >> $GITHUB_ENV
+
+      - name: Cargo login
+        if: env.NEXT_VERSION != env.PREV_VERSION
+        run: cargo login ${{ secrets.CRATES_TOKEN }}
+
+      - name: Cargo package
+        if: env.NEXT_VERSION != env.PREV_VERSION
+        working-directory: ${{ matrix.package.path }}
+        run: |
+          echo "Releasing version: $NEXT_VERSION"
+          echo "Published version: $PREV_VERSION"
+          echo "Cargo Packaging..."
+          cargo package
+
+      - name: Publish ${{ matrix.package.name }}
+        if: env.NEXT_VERSION != env.PREV_VERSION
+        working-directory: ${{ matrix.package.path }}
+        run: |
+          echo "Cargo Publishing..."
+          cargo publish
+          echo "New version $NEXT_VERSION has been published"
+>>>>>>> Stashed changes
